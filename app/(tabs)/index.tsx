@@ -1,74 +1,138 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient'; 
+import Card from '@/components/card';
+import { PieChart } from 'react-native-chart-kit';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 export default function HomeScreen() {
+  const [session, setSession] = useState<Session | null>(null)
+  const currentyDate = new Date();
+
+  const data = [
+    {
+      name: "Seoul",
+      population: 21500,
+      color: "rgba(131, 167, 234, 1)",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 15
+    },
+    {
+      name: "Toronto",
+      population: 2800,
+      color: "#F00",
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 15
+    },
+  ]
+
+  const chartConfig = {
+    backgroundGradientFrom: "#1E2923",
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: "#08130D",
+    backgroundGradientToOpacity: 0.5,
+    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+    strokeWidth: 2, // optional, default 3
+    barPercentage: 0.5,
+    useShadowColorFromDataset: false // optional
+  };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+
+  // const screenWidth = Dimensions.get("window").width; // Para o grafico
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <LinearGradient 
+      colors={['rgba(253,206,223,1)', 'rgba(105,98,173,1)']} 
+      start={{ x: 0, y: 0 }} // Definindo a posição inicial do gradiente
+      end={{ x: 3, y: 1 }}   // Definindo a posição final do gradiente
+      style={styles.container}
+    >
+      <View style={styles.header}>
+      {session && session.user && <Text>{session.user.id}</Text>}
+        <Text style={styles.subtileHeader}>{currentyDate.toLocaleDateString('pt-BR')}</Text>
+        <Text style={styles.titleHeader}>R$ 100,0</Text>
+        <View style={styles.divider} />
+        <View style={styles.infoCalculated }>
+          <View style={styles.containerGraph}>
+            <PieChart
+                data={data}
+                width={250}
+                height={100}
+                chartConfig={chartConfig}
+                accessor={"population"}
+                backgroundColor={"transparent"}
+                paddingLeft={"0"}
+                center={[0, 0]}
+                absolute
+              />
+          </View>
+          <Text style={styles.subtileHeader}>Dinheiro sobrando / total</Text>
+        </View>
+      </View>
+      <View style={styles.content}>
+        <View style={styles.cardsContainer}>
+          <Card content={<Text>Contas</Text>}/>
+          <Card content={<Text>Lazer</Text>}/>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    paddingTop: 40,
+  },
+  titleHeader: {
+    fontSize: 30,
+    color: '#fff',
+    fontWeight: '800',
+  },
+  subtileHeader: {
+    fontSize: 14,
+    color: '#919396',
+    fontWeight: '400',
+  },
+  header: {
+    backgroundColor: 'transparent', 
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  infoCalculated: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  containerGraph: {
+    // width: '50%',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  content: {
+    flex: 1,
+    paddingTop: 40,
+    paddingHorizontal: 20,
+    backgroundColor: '#F6F6F6',
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+  },
+  cardsContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    justifyContent: 'center'
+  },
+  divider: {
+    borderBottomColor: 'rgba(184, 184, 184, 0.9)',
+    borderBottomWidth: 1,
+    marginVertical: 10,
   },
 });
