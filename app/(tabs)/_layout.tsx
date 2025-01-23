@@ -33,10 +33,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile/index"
+        name="expenses"
         options={{
-          title: 'Perfil Usuario',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={'#c1c1c1'} />,
+          title: 'Dispesas',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="plus.circle" color={'#c1c1c1'} />,
         }}
       />
       <Tabs.Screen

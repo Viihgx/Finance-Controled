@@ -1,25 +1,29 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabaseClient";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { Alert, AppState, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import axios from 'axios';
+import { router } from "expo-router";
 
 export default function SignupScreen() {
     const [ email, setEmail ] = useState('');
-    const [ password, setPassword ] = useState('');
+    const [ senha, setSenha ] = useState('');
     const [ loading, setLoading ] = useState(false);
+    const API_URL = 'http://10.0.2.2:5000';
 
-    async function signUpWithEmail() {
+    const handleSignUp = async () => {
         setLoading(true)
-        const {
-            data: { session },
-            error
-        } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-          })
-          if (error) Alert.alert(error.message)
-            if (!session) Alert.alert('Please check your inbox for email verification!')
-            setLoading(false)
+        try {
+            const data = await axios.post(`${API_URL}/api/signup`, { email, senha });
+            if (data.data.message === 'Usuário criado com sucesso') {
+                Alert.alert('Sucesso', 'Conta criada com sucesso!');
+                router.replace('/')
+              }
+            } catch (error: any) {
+              console.error('Erro no cadastro:', error);
+              Alert.alert('Erro no cadastro', error.data?.data?.error || error.message || 'Erro desconhecido');
+            }
+        setLoading(false)
     }
 
     return (
@@ -39,8 +43,8 @@ export default function SignupScreen() {
                 placeholder="Senha"
                 placeholderTextColor="#999"
                 secureTextEntry
-                onChangeText={(text) => setPassword(text)}
-                value={password}
+                onChangeText={(text) => setSenha(text)}
+                value={senha}
                 autoCapitalize={'none'}
             />
             <LinearGradient 
@@ -50,7 +54,7 @@ export default function SignupScreen() {
                 style={styles.loginButton}
             >
                 <TouchableOpacity>
-                    <Text disabled={loading} style={styles.loginButtonText} onPress={() => signUpWithEmail()}>Cadastrar</Text>
+                    <Text disabled={loading} style={styles.loginButtonText} onPress={handleSignUp}>Cadastrar</Text>
                 </TouchableOpacity>
             </LinearGradient>
         </View>

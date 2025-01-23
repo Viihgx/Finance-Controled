@@ -1,6 +1,8 @@
-import { supabase } from "@/lib/supabase";
+import axios from "axios";
+import * as SecureStore from 'expo-secure-store';
 import { LinearGradient } from "expo-linear-gradient";
-import { Link, Redirect, router } from "expo-router";
+import { Link, router } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   StyleSheet,
@@ -14,28 +16,27 @@ import {
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
+  const API_URL = 'http://10.0.2.2:5000';
 
-  async function signInWithEmail() {
+  // const router = useRouter();
+
+  const handleSignIn = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
-
-    if (error) {
-      console.error(error);
-      Alert.alert(error.message);
-      return;
-    } else {
-      router.replace('/(tabs)')
-      console.log('Login realizado com sucesso')
-
-    }
+    try {
+      const data = await axios.post(`${API_URL}/api/login`, { email, senha });
+      console.log(data.data.message)
+        // Armazenando o token JWT 
+         await SecureStore.setItemAsync('userToken', data.data.token);
+        Alert.alert('Login realizado com sucesso!');
+        router.push('/(tabs)');
+    } catch (error: any) {
+      console.error('Erro no login', error)
+      Alert.alert('Erro no cadastro', error.data?.data?.error || error.message || 'Erro desconhecido');
+    };
     setLoading(false);
-    Alert.alert("Login realizado com sucesso!");
-  }
+  };
 
   return (
     <View style={styles.Container}>
@@ -54,8 +55,8 @@ export default function LoginScreen() {
         placeholder="Senha"
         placeholderTextColor="#999"
         secureTextEntry
-        onChangeText={(text) => setPassword(text)}
-        value={password}
+        onChangeText={(text) => setSenha(text)}
+        value={senha}
         autoCapitalize={"none"}
       />
       <LinearGradient
@@ -68,7 +69,7 @@ export default function LoginScreen() {
           <Text
             disabled={loading}
             style={styles.loginButtonText}
-            onPress={() => signInWithEmail()}
+            onPress={handleSignIn}
           >
             Entrar
           </Text>
