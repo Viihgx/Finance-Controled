@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 interface Expenses {
+  id?: string;
   categoria: string;
   saldo_total: string;
   tipo: string;
@@ -20,8 +21,7 @@ interface Expenses {
 }
 
 export default function ExpensesScreen() {
-  const [ valorGasto, setValorGasto ] = useState<Expenses>()
-  const [expenses, setExpenses] = useState<Expenses>({saldo_total: '', categoria: '', tipo: '', valor_ganho: '', valor_gasto: ''});
+  const [expenses, setExpenses] = useState<Expenses>({id: '', saldo_total: '', categoria: '', tipo: '', valor_ganho: '', valor_gasto: ''});
   const [loading, setLoading] = useState(false);
   const API_URL = "http://10.0.2.2:5000";
 
@@ -42,9 +42,10 @@ export default function ExpensesScreen() {
 
       Alert.alert("Valor adicionado com sucesso!");
       console.log(expenses);
-      setExpenses({saldo_total: '', categoria: '', tipo: '', valor_ganho: '', valor_gasto: ''});
+      setExpenses({id: '', saldo_total: '', categoria: '', tipo: '', valor_ganho: '', valor_gasto: ''});
+      console.log(expenses)
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível adicionar o valor");
+      Alert.alert("Erro", "Erro ao adicionar valor");
       console.log("Noa foi possivel adicionar o valor", error);
     }
     setLoading(false);
