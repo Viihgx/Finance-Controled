@@ -97,16 +97,6 @@ export default function HomeScreen() {
     }
   };
 
-  const isSalario = () => {
-    getTransactions.map((item, index) => {
-      if (item.saldo_total === '') {
-        item.salary
-      } else {
-        item.saldo_total
-      }
-    })
-  }
-
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync('userToken');
     Alert.alert('Sucesso', 'Token removido com sucesso!');
@@ -133,10 +123,10 @@ export default function HomeScreen() {
         <Text style={styles.titleHeader}></Text>
         {getTransactions?.length > 0 ? 
           getTransactions?.map((item, index) => (
-            <Text style={styles.titleHeader}>{item.saldo_total ?? item.salary}</Text>
+            <Text style={styles.titleHeader}>{item.saldo_total ? item.saldo_total : item.salary}</Text>
           )) 
         : (
-          <Text style={styles.titleHeader}>Nenhum saldo disponivel</Text>
+          <Text style={styles.titleHeader}>Adicione o seu salario</Text>
         )}
         
         <View style={styles.divider} />
