@@ -10,18 +10,27 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-interface Expenses {
-  id?: string;
-  categoria: string;
-  saldo_total: string;
-  tipo: string;
-  valor_ganho: string;
-  valor_gasto: string;
-}
+import { TransactionsTypes } from "@/types/transactions.types";
+import {
+  Select,
+  SelectTrigger,
+  SelectInput,
+  SelectIcon,
+  SelectPortal,
+  SelectBackdrop,
+  SelectContent,
+  SelectDragIndicatorWrapper,
+  SelectDragIndicator,
+  SelectItem,
+} from "@/components/ui/select"
+import { ChevronDownIcon } from "@/components/ui/icon";
+import { Category } from "@/constants/Category";
+import { Type } from "@/constants/Type";
 
 export default function ExpensesScreen() {
-  const [expenses, setExpenses] = useState<Expenses>({id: '', saldo_total: '', categoria: '', tipo: '', valor_ganho: '', valor_gasto: ''});
+  const [transactions, setTransactions] = useState<TransactionsTypes>({
+    id: '', saldo_total: '', salary: '', category: '', type: '', amount: '', description: ''
+  });
   const [loading, setLoading] = useState(false);
   const API_URL = "http://10.0.2.2:5000";
 
@@ -29,7 +38,7 @@ export default function ExpensesScreen() {
     setLoading(true);
     try {
       const token = await SecureStore.getItemAsync("userToken");
-      await axios.post(`${API_URL}/expenses/add-value`, expenses , {
+      await axios.post(`${API_URL}/transactions/add-value`, transactions , {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -41,9 +50,9 @@ export default function ExpensesScreen() {
       };
 
       Alert.alert("Valor adicionado com sucesso!");
-      console.log(expenses);
-      setExpenses({id: '', saldo_total: '', categoria: '', tipo: '', valor_ganho: '', valor_gasto: ''});
-      console.log(expenses)
+      console.log(transactions);
+      setTransactions({id: '', saldo_total: '', salary: '', category: '', type: '', amount: '', description: ''});
+      console.log(transactions)
     } catch (error) {
       Alert.alert("Erro", "Erro ao adicionar valor");
       console.log("Noa foi possivel adicionar o valor", error);
@@ -53,7 +62,7 @@ export default function ExpensesScreen() {
 
   const handleNumberChange = (text) => {
     const numericValue = text.replace(/[^0-9]/g, "");
-    setExpenses({ ...expenses, saldo_total: text}), {numericValue};
+    setTransactions({ ...transactions, saldo_total: text}), {numericValue};
   };
 
   return (
@@ -63,23 +72,58 @@ export default function ExpensesScreen() {
         placeholder="Adicione seu salário"
         style={styles.input}
         keyboardType="numeric"
-        value={expenses.saldo_total}
-        onChangeText={(text) => setExpenses({ ...expenses, saldo_total: text })}
+        value={transactions.saldo_total}
+        onChangeText={(text) => setTransactions({ ...transactions, saldo_total: text })}
       />
       <TextInput
-        placeholder="Valor gasto"
+        placeholder="Quantia"
         style={styles.input}
         keyboardType="numeric"
-        value={expenses.valor_gasto}
-        onChangeText={(text) => setExpenses({ ...expenses, valor_gasto: text })}
+        value={transactions.amount}
+        onChangeText={(text) => setTransactions({ ...transactions, amount: text })}
       />
-      <TextInput
-        placeholder="Valor Ganho"
-        style={styles.input}
-        keyboardType="numeric"
-        value={expenses.valor_ganho}
-        onChangeText={(text) => setExpenses({ ...expenses, valor_ganho: text })}
-      />
+       <Select
+        selectedValue={transactions.category}
+        onValueChange={(text) => setTransactions({...transactions, category: text})}
+       >
+        <SelectTrigger variant="rounded" size="lg">
+          <SelectInput placeholder="Selecione uma categoria" />
+          <SelectIcon className="" as={ChevronDownIcon} />
+        </SelectTrigger>
+        <SelectPortal>
+          <SelectBackdrop />
+          <SelectContent>
+            <SelectDragIndicatorWrapper>
+              <SelectDragIndicator />
+            </SelectDragIndicatorWrapper>
+            {Category.map((items) => (    
+              <SelectItem label={items.label} value={items.value} />
+              ))
+            }
+          </SelectContent>
+        </SelectPortal>
+      </Select>
+       <Select
+        selectedValue={transactions.category}
+        onValueChange={(text) => setTransactions({...transactions, category: text})}
+       >
+        <SelectTrigger variant="rounded" size="lg">
+          <SelectInput placeholder="Selecione uma categoria" />
+          <SelectIcon className="" as={ChevronDownIcon} />
+        </SelectTrigger>
+        <SelectPortal>
+          <SelectBackdrop />
+          <SelectContent>
+            <SelectDragIndicatorWrapper>
+              <SelectDragIndicator />
+            </SelectDragIndicatorWrapper>
+            {Type.map((items) => (    
+              <SelectItem label={items.label} value={items.value} />
+              ))
+            }
+          </SelectContent>
+        </SelectPortal>
+      </Select>
       <LinearGradient
         colors={["rgba(253,206,223,1)", "rgba(105,98,173,1)"]} // Definindo as cores do gradiente
         start={{ x: 0, y: 0 }} // Definindo a posição inicial do gradiente

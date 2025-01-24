@@ -26,7 +26,7 @@ function authenticateToken(req, res, next) {
 }
 
 // Buscar dados (dispesas) do usuario
-router.get("/expense-data", authenticateToken, async (req, res) => {
+router.get("/transctions-data", authenticateToken, async (req, res) => {
   const { email } = req.user;
 
   const { data: userData, error: userError } = await supabase
@@ -40,12 +40,12 @@ router.get("/expense-data", authenticateToken, async (req, res) => {
   }
 
   const { data: expenseData, error: expenseError } = await supabase
-    .from("expenses")
-    .select("id, saldo_total, categoria, tipo, valor_gasto, valor_ganho")
-    .eq("id_user", userData.id);
+    .from("transactions")
+    .select("id, saldo_total, salary, category, type, amount, description")
+    .eq("user_id", userData.id);
 
   console.log("Dados retornados do Supabase:", expenseData);
-
+''
   if (expenseError) {
     return res.status(500).json({ error: "Erro ao buscar serviços" });
   }
@@ -53,9 +53,9 @@ router.get("/expense-data", authenticateToken, async (req, res) => {
   res.status(200).json({ message: expenseData });
 });
 
-// Rota para adicionar salario
+// Rota para adicionar valor/ (saldo total)
 router.post("/add-value", authenticateToken, async (req, res) => {
-  const { categoria, tipo, saldo_total: salario, valor_gasto, valor_ganho } = req.body;
+  const { category, type, salary: salario, amount, description } = req.body;
   const { email } = req.user;
 
   const { data: userData, error: userError } = await supabase
@@ -70,8 +70,8 @@ router.post("/add-value", authenticateToken, async (req, res) => {
   }
 
   const { error: insertError } = await supabase
-    .from("expenses")
-    .insert([{ id_user: userData.id, saldo_total: salario, tipo: tipo, categoria: categoria, valor_ganho: valor_ganho, valor_gasto: valor_gasto }]);
+    .from("transactions")
+    .insert([{ user_id: userData.id, saldo_total: saldo, type: type, category: category, amount: amount, description: description }]);
 
   if (insertError) {
     return res.status(500).json({ error: "Erro ao adicionar valor" });
@@ -79,5 +79,22 @@ router.post("/add-value", authenticateToken, async (req, res) => {
 
   res.status(200).json({ message: "Valor adicionado com sucesso" });
 });
+
+
+router.put("/update-transactions", authenticateToken, async (req, user) => {
+  const { email  } = req.user;
+  const { salary } = req.body;
+
+  const { error: userErrror } = await supabase
+    .from("transactions")
+    .update({ Salario: salary })
+    .eq('email', email)
+
+    if (userErrror) {
+      return res.status(500).json({ error: 'Erro ao atualizar valor' });
+    }
+  
+    res.status(200).json({ message: 'Valor atualizados com sucesso' });
+  });
 
 module.exports = router;

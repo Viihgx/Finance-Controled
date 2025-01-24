@@ -6,24 +6,14 @@ import { PieChart } from "react-native-chart-kit";
 import * as SecureStore from "expo-secure-store";
 import { router, useFocusEffect } from "expo-router";
 import axios from "axios";
+import { TransactionsTypes, TransactionsTypesResponse } from "@/types/transactions.types";
 
-interface Expenses {
-  categoria: string;
-  id: string;
-  saldo_total: string;
-  tipo: string;
-  valor_gasto: string;
-  valor_ganho: string;
-}
 
-interface ExpensesResponse {
-  message: Expenses[];
-}
 
 export default function HomeScreen() {
   const currentyDate = new Date();
   const [ userName, setUserName ] = useState<string>('');
-  const [ expenses, setExpenses ] = useState<Expenses[]>([]);
+  const [ getTransactions, setGetTransactions ] = useState<TransactionsTypes[]>([]);
   const API_URL = 'http://10.0.2.2:5000';
 
   // const data = [
@@ -54,14 +44,15 @@ export default function HomeScreen() {
   //   useShadowColorFromDataset: false, // optional
   // };
 
-  // useFocusEffect(() => {
-  //   console.log('FOCUS');
+  useFocusEffect(() => {
+    console.log('FOCUS');
+    // fetchExpensesData();
     
-  // }
-  //  );
+  }
+   );
 
   useEffect(() => {
-      fetchExpensesData();
+      fetchTransactionsData();
       fetchUserData();
   }, []);
 
@@ -89,20 +80,32 @@ export default function HomeScreen() {
       }
     }
 
-  const fetchExpensesData = async () => {
+
+
+  const fetchTransactionsData = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
-      const resp = await axios.get<ExpensesResponse>(`${API_URL}/expenses/expense-data`, {
+      const resp = await axios.get<TransactionsResponse>(`${API_URL}/transactions/transctions-data`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setExpenses(resp.data.message);
-      console.log('DataDispesas do usuarios', expenses)
+      setGetTransactions(resp.data.message);
+      console.log('DataDispesas do usuarios', getTransactions)
     } catch (error) {
       console.error('Erro ao buscar dados de dispesas:', error);
     }
   };
+
+  const isSalario = () => {
+    getTransactions.map((item, index) => {
+      if (item.saldo_total === '') {
+        item.salary
+      } else {
+        item.saldo_total
+      }
+    })
+  }
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync('userToken');
@@ -128,12 +131,12 @@ export default function HomeScreen() {
           {currentyDate.toLocaleDateString("pt-BR")}
         </Text>
         <Text style={styles.titleHeader}></Text>
-        {expenses?.length > 0 ? 
-          expenses?.map((item, index) => (
-            <Text style={styles.titleHeader}>{`${item.saldo_total} R$`}</Text>
+        {getTransactions?.length > 0 ? 
+          getTransactions?.map((item, index) => (
+            <Text style={styles.titleHeader}>{item.saldo_total ?? item.salary}</Text>
           )) 
         : (
-          <Text style={styles.titleHeader}>Nenhum saldo</Text>
+          <Text style={styles.titleHeader}>Nenhum saldo disponivel</Text>
         )}
         
         <View style={styles.divider} />
