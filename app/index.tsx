@@ -29,7 +29,6 @@ export default function LoginScreen() {
       console.log(data.data.message)
         // Armazenando o token JWT 
          await SecureStore.setItemAsync('userToken', data.data.token);
-        Alert.alert('Login realizado com sucesso!');
         router.push('/(tabs)');
     } catch (error: any) {
       console.error('Erro no login', error)

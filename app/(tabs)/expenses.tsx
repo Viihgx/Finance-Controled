@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import {
@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { TransactionsTypes } from "@/types/transactions.types";
+import { TransactionsTypes, TransactionsTypesResponse } from "@/types/transactions.types";
 import {
   Select,
   SelectTrigger,
@@ -26,13 +26,35 @@ import {
 import { ChevronDownIcon } from "@/components/ui/icon";
 import { Category } from "@/constants/Category";
 import { Type } from "@/constants/Type";
+import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
+import { Icon, EditIcon } from "@/components/ui/icon"
 
 export default function ExpensesScreen() {
   const [transactions, setTransactions] = useState<TransactionsTypes>({
-    id: '', saldo_total: '', salary: '', category: '', type: '', amount: '', description: ''
+    id: '', category: '', type: '', amount: '', description: ''
   });
   const [loading, setLoading] = useState(false);
+  const [ getTransactions, setGetTransactions ] = useState<TransactionsTypes[]>([]);
   const API_URL = "http://10.0.2.2:5000";
+
+ useEffect(() => {
+      fetchTransactionsData();
+  }, []);
+
+  const fetchTransactionsData = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("userToken");
+      const resp = await axios.get<TransactionsTypesResponse>(`${API_URL}/transactions/transctions-data`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setGetTransactions(resp.data.message);
+      console.log('DataDispesas do usuarios', getTransactions)
+    } catch (error) {
+      console.error('Erro ao buscar dados de dispesas:', error);
+    }
+  };
 
   const handleAddSalario = async () => {
     setLoading(true);
@@ -51,7 +73,7 @@ export default function ExpensesScreen() {
 
       Alert.alert("Valor adicionado com sucesso!");
       console.log(transactions);
-      setTransactions({id: '', saldo_total: '', salary: '', category: '', type: '', amount: '', description: ''});
+      setTransactions({id: '', category: '', type: '', amount: '', description: ''});
       console.log(transactions)
     } catch (error) {
       Alert.alert("Erro", "Erro ao adicionar valor");
@@ -60,28 +82,34 @@ export default function ExpensesScreen() {
     setLoading(false);
   };
 
-  const handleNumberChange = (text) => {
-    const numericValue = text.replace(/[^0-9]/g, "");
-    setTransactions({ ...transactions, saldo_total: text}), {numericValue};
-  };
+  // const handleNumberChange = (text) => {
+  //   const numericValue = text.replace(/[^0-9]/g, "");
+  //   setTransactions({ ...transactions, saldo_total: text}), {numericValue};
+  // };
 
   return (
     <View style={styles.container}>
-      <Text>Despesas Totais / Adicionar</Text>
-      <TextInput
+      <Text></Text>
+      <Text>Valor</Text>
+      {/* <TextInput
         placeholder="Adicione seu salário"
         style={styles.input}
         keyboardType="numeric"
         value={transactions.saldo_total}
         onChangeText={(text) => setTransactions({ ...transactions, saldo_total: text })}
-      />
-      <TextInput
-        placeholder="Quantia"
-        style={styles.input}
-        keyboardType="numeric"
-        value={transactions.amount}
-        onChangeText={(text) => setTransactions({ ...transactions, amount: text })}
-      />
+      /> */}
+      <Input
+      variant="underlined"
+      size="lg"
+      isDisabled={false}
+      isInvalid={false}
+      isReadOnly={false}
+    >
+      <InputField placeholder="0.00" />
+      <InputSlot>
+        <InputIcon as={EditIcon}></InputIcon>
+      </InputSlot>
+    </Input>
        <Select
         selectedValue={transactions.category}
         onValueChange={(text) => setTransactions({...transactions, category: text})}
@@ -147,7 +175,8 @@ export default function ExpensesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    // justifyContent: "center",
+    marginTop: 30,
     backgroundColor: "#F6F6F6",
     paddingHorizontal: 30,
   },

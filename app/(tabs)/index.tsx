@@ -6,15 +6,18 @@ import { PieChart } from "react-native-chart-kit";
 import * as SecureStore from "expo-secure-store";
 import { router, useFocusEffect } from "expo-router";
 import axios from "axios";
-import { TransactionsTypes, TransactionsTypesResponse } from "@/types/transactions.types";
+import { TransactionsSumTypes, TransactionsSumTypesResponse, TransactionsTypes, TransactionsTypesResponse } from "@/types/transactions.types";
 
 
 
 export default function HomeScreen() {
   const currentyDate = new Date();
   const [ userName, setUserName ] = useState<string>('');
+  // const [ sum, setSum ] = useState('');
   const [ getTransactions, setGetTransactions ] = useState<TransactionsTypes[]>([]);
   const API_URL = 'http://10.0.2.2:5000';
+  const sumData =  getTransactions.reduce((acc, trans)=> (Number(acc)+Number(trans.amount)), 0)
+
 
   // const data = [
   //   {
@@ -52,8 +55,10 @@ export default function HomeScreen() {
    );
 
   useEffect(() => {
-      fetchTransactionsData();
+      // fetchTransactionsData();
       fetchUserData();
+      fetchDataSum();
+      console.log('Dispesas do usuario', getTransactions)
   }, []);
 
   const fetchUserData = async () => {
@@ -80,18 +85,63 @@ export default function HomeScreen() {
       }
     }
 
+  // const fetchSumAmount = async () => {
+  //   try {
+  //     const token = await SecureStore.getItemAsync("userToken");
+  //       if (!token) {
+  //         Alert.alert("Erro", "Usuário não autenticado");
+  //         router.push("/");
+  //         return;
+  //       }
+        
+  //       const userResponse = await axios.get(`${API_URL}/transctions/sum-amount`, {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       });
+        
+  //       setSumAmount(userResponse.data.sum);
+  //       console.log('amount:', sumAmount);
+        
+  //     } catch (error) {
+  //       console.error('Erro ao buscar soma:', error);
+  //       Alert.alert('Erro', 'Não foi possível carregar os dados do usuário');
+  //     }
+  //   }
 
 
-  const fetchTransactionsData = async () => {
+
+  // const fetchSumAmount = async () => {
+  //   try {
+  //     const token = await SecureStore.getItemAsync("userToken");
+  //       if (!token) {
+  //         Alert.alert("Erro", "Usuário não autenticado");
+  //         router.push("/");
+  //         return;
+  //       }
+
+  //     const resp = await axios.get(`${API_URL}/transctions/transctions-data`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+  //     setSum(resp.data.message);
+  //     console.log('Soma de amount', sum)
+  //   } catch (error) {
+  //     console.error('Erro ao buscar soma: ', error);
+  //   }
+  // };
+
+  const fetchDataSum = async () => {
     try {
       const token = await SecureStore.getItemAsync("userToken");
-      const resp = await axios.get<TransactionsResponse>(`${API_URL}/transactions/transctions-data`, {
+      const resp = await axios.get<TransactionsTypesResponse>(`${API_URL}/transactions/transctions-data`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       setGetTransactions(resp.data.message);
-      console.log('DataDispesas do usuarios', getTransactions)
+      console.log('Dispesas do usuarios', getTransactions)
     } catch (error) {
       console.error('Erro ao buscar dados de dispesas:', error);
     }
@@ -120,15 +170,7 @@ export default function HomeScreen() {
         <Text style={styles.subtileHeader}>
           {currentyDate.toLocaleDateString("pt-BR")}
         </Text>
-        <Text style={styles.titleHeader}></Text>
-        {getTransactions?.length > 0 ? 
-          getTransactions?.map((item, index) => (
-            <Text style={styles.titleHeader}>{item.saldo_total ? item.saldo_total : item.salary}</Text>
-          )) 
-        : (
-          <Text style={styles.titleHeader}>Adicione o seu salario</Text>
-        )}
-        
+            <Text style={styles.titleHeader}>{sumData}</Text>
         <View style={styles.divider} />
         <View style={styles.infoCalculated}>
           <View style={styles.containerGraph}>

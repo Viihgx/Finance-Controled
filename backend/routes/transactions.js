@@ -10,7 +10,7 @@ function authenticateToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
-  console.log("Token recebido:", token);
+  // console.log("Token recebido:", token);
 
   if (!token)
     return res
@@ -25,9 +25,54 @@ function authenticateToken(req, res, next) {
   });
 }
 
+// router.get('/sum/:userId', async (req, res) => {
+//   const { userId } = req.params;
+
+//   try {
+//     const { data, error } = await supabase.rpc('get_sum', { user_id: userId });
+
+//     if (error) {
+//       return res.status(500).json({ error: error.message });
+//     }
+
+//     res.json({ sum: data || 0 }); 
+//   } catch (err) {
+//     res.status(500).json({ error: 'Erro ao obter a soma.' });
+//   }
+// });
+
 // Buscar dados (dispesas) do usuario
+// router.get("/sum", authenticateToken, async (req, res) => {
+//   const { email } = req.user;
+
+//   const { data: userData, error: userError } = await supabase
+//     .from("users")
+//     .select("id")
+//     .eq("email", email)
+//     .single();
+
+//   if (userError) {
+//     return res.status(500).json({ error: "Erro ao buscar dados do usuário" });
+//   }
+
+//   const { data: sumAmountData, error: sumAmountError } = await supabase
+//     .rpc('get_sum', {userData})
+//     // .eq("user_id", userData.id);
+
+//   console.log("Soma do amount:", sumAmountData);
+
+//   // const sum = sumAmountData.reduce((acc, transation) => acc + transation.amount, 0)
+
+//   if (sumAmountError) {
+//     return res.status(500).json({ error: "Erro ao buscar soma" });
+//   }
+
+//   res.status(200).json({ message: sum || 0});
+// });
+
 router.get("/transctions-data", authenticateToken, async (req, res) => {
   const { email } = req.user;
+  console.log(req.user)
 
   const { data: userData, error: userError } = await supabase
     .from("users")
@@ -41,46 +86,48 @@ router.get("/transctions-data", authenticateToken, async (req, res) => {
 
   const { data: expenseData, error: expenseError } = await supabase
     .from("transactions")
-    .select("id, saldo_total, salary, category, type, amount, description")
+    .select("id, category, type, amount, description")
     .eq("user_id", userData.id);
 
   console.log("Dados retornados do Supabase:", expenseData);
-''
+ 
+
   if (expenseError) {
     return res.status(500).json({ error: "Erro ao buscar serviços" });
   }
 
-  res.status(200).json({ message: expenseData });
+  res.status(200).json({ message: expenseData});
 });
 
 // Rota para adicionar valor/ (saldo total)
-router.post("/add-value", authenticateToken, async (req, res) => {
-  const { category, type, salary: salario, amount, description } = req.body;
-  const { email } = req.user;
+// router.post("/add-value", authenticateToken, async (req, res) => {
+//   const { category, type, amount, description } = req.body;
+//   const { email } = req.user;
 
-  const { data: userData, error: userError } = await supabase
-    .from("users")
-    .select("id")
-    .eq("email", email)
-    .single();
+//   const { data: userData, error: userError } = await supabase
+//     .from("users")
+//     .select("id")
+//     .eq("email", email)
+//     .single();
 
-  if (userError) {
-    console.log("Erro ao buscar usuário", userError);
-    return res.status(404).json({ error: "Usuário não encontrado" });
-  }
+//   if (userError) {
+//     console.log("Erro ao buscar usuário", userError);
+//     return res.status(404).json({ error: "Usuário não encontrado" });
+//   }
 
-  const { error: insertError } = await supabase
-    .from("transactions")
-    .insert([{ user_id: userData.id, saldo_total: saldo, type: type, category: category, amount: amount, description: description }]);
+//   const { error: insertError } = await supabase
+//     .from("transactions")
+//     .insert([{ user_id: userData.id, type: type, category: category, amount: amount, description: description }]);
 
-  if (insertError) {
-    return res.status(500).json({ error: "Erro ao adicionar valor" });
-  }
+//   if (insertError) {
+//     return res.status(500).json({ error: "Erro ao adicionar valor" });
+//   }
 
-  res.status(200).json({ message: "Valor adicionado com sucesso" });
-});
+//   res.status(200).json({ message: "Valor adicionado com sucesso" });
+// });
 
 
+// Ajustar (essa coluna nao existe mais)
 router.put("/update-transactions", authenticateToken, async (req, user) => {
   const { email  } = req.user;
   const { salary } = req.body;
