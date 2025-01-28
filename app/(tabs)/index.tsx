@@ -2,60 +2,23 @@ import React, { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Card from "@/components/card";
-import { PieChart } from "react-native-chart-kit";
 import * as SecureStore from "expo-secure-store";
 import { router, useFocusEffect } from "expo-router";
 import axios from "axios";
-import { TransactionsSumTypes, TransactionsSumTypesResponse, TransactionsTypes, TransactionsTypesResponse } from "@/types/transactions.types";
-
-
+import { TransactionsTypes, TransactionsTypesResponse } from "@/types/transactions.types";
 
 export default function HomeScreen() {
   const currentyDate = new Date();
   const [ userName, setUserName ] = useState<string>('');
-  // const [ sum, setSum ] = useState('');
   const [ getTransactions, setGetTransactions ] = useState<TransactionsTypes[]>([]);
   const API_URL = 'http://10.0.2.2:5000';
-  const sumData =  getTransactions.reduce((acc, trans)=> (Number(acc)+Number(trans.amount)), 0)
-
-
-  // const data = [
-  //   {
-  //     name: "Seoul",
-  //     population: 21500,
-  //     color: "rgba(131, 167, 234, 1)",
-  //     legendFontColor: "#7F7F7F",
-  //     legendFontSize: 15,
-  //   },
-  //   {
-  //     name: "Toronto",
-  //     population: 2800,
-  //     color: "#F00",
-  //     legendFontColor: "#7F7F7F",
-  //     legendFontSize: 15,
-  //   },
-  // ];
-
-  // const chartConfig = {
-  //   backgroundGradientFrom: "#1E2923",
-  //   backgroundGradientFromOpacity: 0,
-  //   backgroundGradientTo: "#08130D",
-  //   backgroundGradientToOpacity: 0.5,
-  //   color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
-  //   strokeWidth: 2, // optional, default 3
-  //   barPercentage: 0.5,
-  //   useShadowColorFromDataset: false, // optional
-  // };
-
-  useFocusEffect(() => {
-    console.log('FOCUS');
-    // fetchExpensesData();
-    
-  }
-   );
+  const sumData = getTransactions.reduce((acc, trans) => {
+    if (trans.type === "income") return acc + Number(trans.amount);
+    if (trans.type === "expense") return acc - Number(trans.amount);
+    return acc;
+  }, 0);
 
   useEffect(() => {
-      // fetchTransactionsData();
       fetchUserData();
       fetchDataSum();
       console.log('Dispesas do usuario', getTransactions)
@@ -84,53 +47,6 @@ export default function HomeScreen() {
         Alert.alert('Erro', 'Não foi possível carregar os dados do usuário');
       }
     }
-
-  // const fetchSumAmount = async () => {
-  //   try {
-  //     const token = await SecureStore.getItemAsync("userToken");
-  //       if (!token) {
-  //         Alert.alert("Erro", "Usuário não autenticado");
-  //         router.push("/");
-  //         return;
-  //       }
-        
-  //       const userResponse = await axios.get(`${API_URL}/transctions/sum-amount`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
-        
-  //       setSumAmount(userResponse.data.sum);
-  //       console.log('amount:', sumAmount);
-        
-  //     } catch (error) {
-  //       console.error('Erro ao buscar soma:', error);
-  //       Alert.alert('Erro', 'Não foi possível carregar os dados do usuário');
-  //     }
-  //   }
-
-
-
-  // const fetchSumAmount = async () => {
-  //   try {
-  //     const token = await SecureStore.getItemAsync("userToken");
-  //       if (!token) {
-  //         Alert.alert("Erro", "Usuário não autenticado");
-  //         router.push("/");
-  //         return;
-  //       }
-
-  //     const resp = await axios.get(`${API_URL}/transctions/transctions-data`, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-  //     setSum(resp.data.message);
-  //     console.log('Soma de amount', sum)
-  //   } catch (error) {
-  //     console.error('Erro ao buscar soma: ', error);
-  //   }
-  // };
 
   const fetchDataSum = async () => {
     try {
@@ -170,21 +86,10 @@ export default function HomeScreen() {
         <Text style={styles.subtileHeader}>
           {currentyDate.toLocaleDateString("pt-BR")}
         </Text>
-            <Text style={styles.titleHeader}>{sumData}</Text>
+            <Text style={styles.titleHeader}>{sumData.toFixed(2)}</Text>
         <View style={styles.divider} />
         <View style={styles.infoCalculated}>
           <View style={styles.containerGraph}>
-            {/* <PieChart
-              data={data}
-              width={200}
-              height={100}
-              chartConfig={chartConfig}
-              accessor={"population"}
-              backgroundColor={"transparent"}
-              paddingLeft={"0"}
-              center={[0, 0]}
-              absolute
-            /> */}
           </View>
           <Text style={styles.subtileHeader}>Dinheiro sobrando / total</Text>
         </View>

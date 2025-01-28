@@ -99,33 +99,39 @@ router.get("/transctions-data", authenticateToken, async (req, res) => {
   res.status(200).json({ message: expenseData});
 });
 
-// Rota para adicionar valor/ (saldo total)
-// router.post("/add-value", authenticateToken, async (req, res) => {
-//   const { category, type, amount, description } = req.body;
-//   const { email } = req.user;
+// Rota para adicionar valor/ (saldo total) 
+router.post("/add", authenticateToken, async (req, res) => {
+  const { email } = req.user;
+  const { title, amount, type, category, description, date } = req.body;
 
-//   const { data: userData, error: userError } = await supabase
-//     .from("users")
-//     .select("id")
-//     .eq("email", email)
-//     .single();
+  try {
+    const { data: userData, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .single();
 
-//   if (userError) {
-//     console.log("Erro ao buscar usuário", userError);
-//     return res.status(404).json({ error: "Usuário não encontrado" });
-//   }
+    if (userError) throw userError;
 
-//   const { error: insertError } = await supabase
-//     .from("transactions")
-//     .insert([{ user_id: userData.id, type: type, category: category, amount: amount, description: description }]);
+    const { error: insertError } = await supabase.from("transactions").insert([
+      {
+        user_id: userData.id,
+        title,
+        amount,
+        type, // so aceiata "income" ou "expense"
+        category,
+        description,
+        date,
+      },
+    ]);
 
-//   if (insertError) {
-//     return res.status(500).json({ error: "Erro ao adicionar valor" });
-//   }
+    if (insertError) throw insertError;
 
-//   res.status(200).json({ message: "Valor adicionado com sucesso" });
-// });
-
+    res.status(200).json({ message: "Transação adicionada com sucesso." });
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao adicionar transação." });
+  }
+});
 
 // Ajustar (essa coluna nao existe mais)
 router.put("/update-transactions", authenticateToken, async (req, user) => {

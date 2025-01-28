@@ -30,182 +30,227 @@ import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
 import { Icon, EditIcon } from "@/components/ui/icon"
 
 export default function ExpensesScreen() {
-  const [transactions, setTransactions] = useState<TransactionsTypes>({
-    id: '', category: '', type: '', amount: '', description: ''
+  // const [transactions, setTransactions] = useState<TransactionsTypes>({
+  //   id: '', category: '', type: '', amount: '', description: ''
+  // });
+  const [activeTab, setActiveTab] = useState("income"); 
+  const [formData, setFormData] = useState({
+    title: "",
+    amount: "",
+    category: "",
+    description: "",
   });
   const [loading, setLoading] = useState(false);
-  const [ getTransactions, setGetTransactions ] = useState<TransactionsTypes[]>([]);
   const API_URL = "http://10.0.2.2:5000";
 
- useEffect(() => {
-      fetchTransactionsData();
-  }, []);
-
-  const fetchTransactionsData = async () => {
-    try {
-      const token = await SecureStore.getItemAsync("userToken");
-      const resp = await axios.get<TransactionsTypesResponse>(`${API_URL}/transactions/transctions-data`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setGetTransactions(resp.data.message);
-      console.log('DataDispesas do usuarios', getTransactions)
-    } catch (error) {
-      console.error('Erro ao buscar dados de dispesas:', error);
-    }
+  const handleTabChange = (type) => {
+    setActiveTab(type);
   };
 
-  const handleAddSalario = async () => {
+  const handleSubmit = async () => {
+    if (!formData.amount || !formData.category) {
+      Alert.alert("Por favor preencha todos os campos obrigatorios!");
+      return;
+    }
+
     setLoading(true);
+
     try {
       const token = await SecureStore.getItemAsync("userToken");
-      await axios.post(`${API_URL}/transactions/add-value`, transactions , {
-        headers: {
-          Authorization: `Bearer ${token}`,
+
+      await axios.post(`${API_URL}/transactions/add`, 
+        {
+          ...formData,
+          type: activeTab
         },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!token) {
         Alert.alert("Erro", "Token de autenticação não encontrado.");
         return;
       };
 
-      Alert.alert("Valor adicionado com sucesso!");
-      console.log(transactions);
-      setTransactions({id: '', category: '', type: '', amount: '', description: ''});
-      console.log(transactions)
+      Alert.alert("Sucesso", "Transação adicionada com sucesso!");
+        setFormData({ title: "", amount: "", category: "", description: "" });
     } catch (error) {
-      Alert.alert("Erro", "Erro ao adicionar valor");
-      console.log("Noa foi possivel adicionar o valor", error);
-    }
-    setLoading(false);
+        console.error("Erro ao adicionar transação:", error);
+        Alert.alert("Erro", "Não foi possível adicionar a transação");
+      } finally {
+        setLoading(false);
+      }
   };
 
-  // const handleNumberChange = (text) => {
-  //   const numericValue = text.replace(/[^0-9]/g, "");
-  //   setTransactions({ ...transactions, saldo_total: text}), {numericValue};
-  // };
-
   return (
-    <View style={styles.container}>
-      <Text></Text>
-      <Text>Valor</Text>
-      {/* <TextInput
-        placeholder="Adicione seu salário"
-        style={styles.input}
-        keyboardType="numeric"
-        value={transactions.saldo_total}
-        onChangeText={(text) => setTransactions({ ...transactions, saldo_total: text })}
-      /> */}
-      <Input
-      variant="underlined"
-      size="lg"
-      isDisabled={false}
-      isInvalid={false}
-      isReadOnly={false}
-    >
-      <InputField placeholder="0.00" />
-      <InputSlot>
-        <InputIcon as={EditIcon}></InputIcon>
-      </InputSlot>
-    </Input>
-       <Select
-        selectedValue={transactions.category}
-        onValueChange={(text) => setTransactions({...transactions, category: text})}
-       >
-        <SelectTrigger variant="rounded" size="lg">
-          <SelectInput placeholder="Selecione uma categoria" />
-          <SelectIcon className="" as={ChevronDownIcon} />
-        </SelectTrigger>
-        <SelectPortal>
-          <SelectBackdrop />
-          <SelectContent>
-            <SelectDragIndicatorWrapper>
-              <SelectDragIndicator />
-            </SelectDragIndicatorWrapper>
-            {Category.map((items) => (    
-              <SelectItem label={items.label} value={items.value} />
-              ))
-            }
-          </SelectContent>
-        </SelectPortal>
-      </Select>
-       <Select
-        selectedValue={transactions.category}
-        onValueChange={(text) => setTransactions({...transactions, category: text})}
-       >
-        <SelectTrigger variant="rounded" size="lg">
-          <SelectInput placeholder="Selecione uma categoria" />
-          <SelectIcon className="" as={ChevronDownIcon} />
-        </SelectTrigger>
-        <SelectPortal>
-          <SelectBackdrop />
-          <SelectContent>
-            <SelectDragIndicatorWrapper>
-              <SelectDragIndicator />
-            </SelectDragIndicatorWrapper>
-            {Type.map((items) => (    
-              <SelectItem label={items.label} value={items.value} />
-              ))
-            }
-          </SelectContent>
-        </SelectPortal>
-      </Select>
-      <LinearGradient
-        colors={["rgba(253,206,223,1)", "rgba(105,98,173,1)"]} // Definindo as cores do gradiente
-        start={{ x: 0, y: 0 }} // Definindo a posição inicial do gradiente
-        end={{ x: 3, y: 1 }} // Definindo a posição final do gradiente
-        style={styles.button}
-      >
-        <TouchableOpacity>
-          <Text 
-          style={styles.buttonText} 
-          onPress={handleAddSalario}
-          disabled={loading}
-          >
-            Salvar
-          </Text>
-        </TouchableOpacity>
-      </LinearGradient>
-    </View>
-  );
-}
+   <View style={styles.container}>
+         <View style={styles.tabs}>
+           <TouchableOpacity
+             style={[
+               styles.tabButton,
+               activeTab === "income" && styles.activeTab,
+             ]}
+             onPress={() => handleTabChange("income")}
+           >
+             <Text style={styles.tabText}>Receita</Text>
+           </TouchableOpacity>
+           <TouchableOpacity
+             style={[
+               styles.tabButton,
+               activeTab === "expense" && styles.activeTab,
+             ]}
+             onPress={() => handleTabChange("expense")}
+           >
+             <Text style={styles.tabText}>Despesa</Text>
+           </TouchableOpacity>
+         </View>
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // justifyContent: "center",
-    marginTop: 30,
-    backgroundColor: "#F6F6F6",
-    paddingHorizontal: 30,
-  },
-  input: {
-    height: 45,
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    color: "#111",
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  button: {
-    backgroundColor: "#FDCEDF",
-    paddingVertical: 10,
-    borderRadius: 50,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});
+          {/* FORM */}
+         <View style={styles.form}>
+          <View style={styles.containerValue}>
+            <Text style={styles.inputTextValue}>Valor</Text>
+            <TextInput
+              style={styles.inputValue}
+              placeholder="R$ 0.00"
+              keyboardType="numeric"
+              value={formData.amount}
+              onChangeText={(text) =>
+                setFormData({ ...formData, amount: text })
+              }
+            />
+          </View>
+          <Text style={styles.inputText}>Titulo</Text>
+           <TextInput
+             style={styles.input}
+             placeholder="Título"
+             value={formData.title}
+             onChangeText={(text) =>
+               setFormData({ ...formData, title: text })
+             }
+           />
+          <Text style={styles.inputText}>Descrição</Text>
+           <TextInput
+               style={styles.input}
+               placeholder="Descrição (opcional)"
+               value={formData.description}
+               onChangeText={(text) =>
+                 setFormData({ ...formData, description: text })
+              }
+           />
+          <Text style={styles.inputText}>Categoria</Text>
+           <TextInput
+             style={styles.input}
+             placeholder="Categoria (ex: Lazer ou Contas)"
+             value={formData.category}
+             onChangeText={(text) =>
+               setFormData({ ...formData, category: text })
+             }
+           />
+           <LinearGradient
+              colors={["rgba(253,206,223,1)", "rgba(105,98,173,1)"]} // Definindo as cores do gradiente
+              start={{ x: 0, y: 0 }} // Definindo a posição inicial do gradiente
+              end={{ x: 3, y: 1 }} // Definindo a posição final do gradiente
+              style={styles.submitButton}
+          >
+           <TouchableOpacity
+             onPress={handleSubmit}
+             disabled={loading}
+             >
+             <Text style={styles.submitButtonText}>
+               {loading ? "Salvando..." : "Salvar"}
+             </Text>
+           </TouchableOpacity>
+             </LinearGradient>
+         </View>
+       </View>
+     );
+   }
+   
+   const styles = StyleSheet.create({
+     container: {
+       flex: 1,
+       backgroundColor: "#F6F6F6",
+      //  padding: 20,
+       paddingTop: 50,
+     },
+     tabs: {
+       flexDirection: "row",
+       justifyContent: "center",
+       marginBottom: 20,
+     },
+     tabButton: {
+       padding: 10,
+       borderRadius: 20,
+       backgroundColor: "#F6F6F6",
+       paddingHorizontal: 50,
+      //  marginHorizontal: 5,
+     },
+     activeTab: {
+       backgroundColor: 'rgba(253,206,223,1)", "rgba(105,98,173,1)',
+     },
+     tabText: {
+       color: "#777777",
+       fontWeight: "bold",
+     },
+     form: {
+       backgroundColor: "#fff",
+       padding: 20,
+       borderTopEndRadius: 50,
+       borderTopStartRadius: 50,
+       borderRadius: 10,
+     },
+     containerValue: {
+       backgroundColor: "#fff",
+       padding: 20,
+       paddingHorizontal: 30,
+       alignContent: 'center',
+       justifyContent: 'center',
+     },
+     inputTextValue: {
+      marginLeft: 11,
+      fontSize: 16,
+      fontWeight: "500",
+      color: "#777777",
+      marginBottom: 4,
+     },
+     inputValue: {
+       height: 52,
+       borderRadius: 20,
+       paddingHorizontal: 15,
+       fontSize: 25,
+       marginBottom: 15,
+       borderWidth: 1,
+       borderColor: "#ddd",
+     },
+     input: {
+       height: 45,
+       backgroundColor: "#F6F6F6",
+       borderRadius: 20,
+       paddingHorizontal: 15,
+       fontSize: 15,
+       marginBottom: 15,
+       borderWidth: 1,
+       borderColor: "#ddd",
+     },
+     inputText: {
+      marginLeft: 10,
+      fontSize: 14,
+      fontWeight: "500",
+      color: "#777777",
+      marginBottom: 4,
+     },
+     submitButton: {
+       backgroundColor: "#007BFF",
+       paddingVertical: 10,
+       borderRadius: 20,
+       alignItems: "center",
+     },
+     submitButtonText: {
+       color: "#fff",
+       fontSize: 16,
+       fontWeight: "bold",
+     },
+   });
