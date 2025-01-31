@@ -113,23 +113,27 @@ router.post("/add", authenticateToken, async (req, res) => {
 
     if (userError) throw userError;
 
-    const { error: insertError } = await supabase.from("transactions").insert([
-      {
-        user_id: userData.id,
-        title,
-        amount,
-        type, // so aceiata "income" ou "expense"
-        category,
-        description,
-        date,
-      },
-    ]);
+    const { error: insertError } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          user_id: userData.id,
+          title: title,
+          amount: amount,
+          type: type, // so aceiata "income" ou "expense"
+          category: category,
+          description: description,
+          date: date,
+        },
+      ]);
 
     if (insertError) throw insertError;
 
     res.status(200).json({ message: "Transação adicionada com sucesso." });
+    console.log(message)
   } catch (error) {
     res.status(500).json({ error: "Erro ao adicionar transação." });
+    console.log(error)
   }
 });
 

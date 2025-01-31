@@ -96,7 +96,7 @@ export default function HomeScreen() {
       </View>
       <View style={styles.content}>
         <View style={styles.cardsContainer}>
-          <Card content={<Text>Contas</Text>} />
+          <Card content={<Text>Cartoão de Crédito</Text>} />
           <Card content={<Text>Lazer</Text>} />
         </View>
       </View>

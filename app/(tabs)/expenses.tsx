@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import {
@@ -11,34 +11,18 @@ import {
   View,
 } from "react-native";
 import { TransactionsTypes, TransactionsTypesResponse } from "@/types/transactions.types";
-import {
-  Select,
-  SelectTrigger,
-  SelectInput,
-  SelectIcon,
-  SelectPortal,
-  SelectBackdrop,
-  SelectContent,
-  SelectDragIndicatorWrapper,
-  SelectDragIndicator,
-  SelectItem,
-} from "@/components/ui/select"
-import { ChevronDownIcon } from "@/components/ui/icon";
-import { Category } from "@/constants/Category";
-import { Type } from "@/constants/Type";
-import { Input, InputField, InputIcon, InputSlot } from "@/components/ui/input";
-import { Icon, EditIcon } from "@/components/ui/icon"
 
 export default function ExpensesScreen() {
   // const [transactions, setTransactions] = useState<TransactionsTypes>({
   //   id: '', category: '', type: '', amount: '', description: ''
   // });
-  const [activeTab, setActiveTab] = useState("income"); 
-  const [formData, setFormData] = useState({
+  const [activeTab, setActiveTab] = useState(""); 
+  const [formData, setFormData] = useState<TransactionsTypes>({
     title: "",
     amount: "",
     category: "",
     description: "",
+    type: ""
   });
   const [loading, setLoading] = useState(false);
   const API_URL = "http://10.0.2.2:5000";
@@ -58,7 +42,7 @@ export default function ExpensesScreen() {
     try {
       const token = await SecureStore.getItemAsync("userToken");
 
-      await axios.post(`${API_URL}/transactions/add`, 
+      await axios.post<TransactionsTypesResponse>(`${API_URL}/transactions/add`, 
         {
           ...formData,
           type: activeTab
@@ -76,7 +60,7 @@ export default function ExpensesScreen() {
       };
 
       Alert.alert("Sucesso", "Transação adicionada com sucesso!");
-        setFormData({ title: "", amount: "", category: "", description: "" });
+      setFormData({ title: "", amount: "", category: "", description: "", type: "" });
     } catch (error) {
         console.error("Erro ao adicionar transação:", error);
         Alert.alert("Erro", "Não foi possível adicionar a transação");
@@ -93,7 +77,9 @@ export default function ExpensesScreen() {
                styles.tabButton,
                activeTab === "income" && styles.activeTab,
              ]}
-             onPress={() => handleTabChange("income")}
+             onPress={() => {
+              handleTabChange("income")
+            }}
            >
              <Text style={styles.tabText}>Receita</Text>
            </TouchableOpacity>

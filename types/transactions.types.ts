@@ -1,7 +1,8 @@
 export interface TransactionsTypes {
     id?: string;
-    type?: string;
-    category?: string;
+    type: string;
+    category: string;
+    title: string;
     amount: string;
     description?: string;
 }
